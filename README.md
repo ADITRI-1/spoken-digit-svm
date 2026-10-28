@@ -9,6 +9,21 @@ Most of the work went into making the evaluation honest and the features speaker
 | **Final: own MFCC pipeline + per-speaker normalisation** | **0.916** |
 | Leave-one-speaker-out estimate (4 speakers) | 0.532 → **0.754** |
 
+## 🎙️ Live demo
+Run `python app.py`, open the link, press **Record** and say a digit. You get the top-3 predictions with their probabilities.
+
+The final model z-scores features *per speaker*, which needs more than one clip from that speaker.
+The demo therefore has an optional **calibration** step: say each digit once (10 clips), and your clips are normalised with your own statistics.
+
+How much 10 calibration clips help, measured on held-out speakers:
+
+| speaker held out | no calibration | 10-clip calibration |
+|---|---|---|
+| each training speaker, trained on the other 3 (mean of 4) | 0.62 | **0.72** |
+| new speaker S5, trained on all 4 | 0.88 | **0.90** |
+
+<!-- Add a screen recording here: ![demo](results/demo.gif) -->
+
 ## Key findings
 
 **1. Standard K-fold badly overestimates accuracy.** Here is the same SVM scored three ways:
@@ -82,7 +97,13 @@ Most confusions are between similar-sounding words: 4 → 1 ("four" / "one") and
 pip install -r requirements.txt
 python src/experiments.py --data data    # all figures + results/metrics.json (~15 s)
 python src/predict.py --data data --test data/partA_val.csv --out predictions.csv
+python src/export_model.py --data data   # re-create models/digit_svm.joblib for the demo
+python app.py                            # live demo (works without the data folder)
 ```
+
+The trained demo models are included in `models/`, so `app.py` runs without the dataset.
+To host it for free on [Hugging Face Spaces](https://huggingface.co/new-space), create a Space with the Gradio SDK and upload `app.py`, `src/`, `models/` and `requirements.txt`.
+Set `python_version: "3.12"` in the Space's README header, because scikit-learn 1.9.1 needs Python 3.11 or newer.
 
 Expected data layout (not included in this repo):
 
@@ -100,6 +121,9 @@ src/features.py      audio loading, audio statistics, MFCC + VAD, speaker normal
 src/model.py         final SVM and hyperparameters
 src/experiments.py   EDA, validation comparison, C/γ search, error analysis, ablation
 src/predict.py       train the final model and predict a new file
+src/export_model.py  train and save the two demo models (plain + speaker-normalised)
+app.py               Gradio live demo with microphone input and voice calibration
+models/              saved demo models
 results/             figures and metrics.json
 ```
 

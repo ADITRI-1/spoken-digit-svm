@@ -5,10 +5,12 @@ energy VAD (keep the speech part) -> 13 MFCCs -> summary statistics over time.
 Then every feature is z-scored inside each speaker, which removes speaker / microphone offsets.
 """
 import os
+from math import gcd
 import numpy as np
 import pandas as pd
 from scipy.fft import dct, rfft
 from scipy.io import wavfile
+from scipy.signal import resample_poly
 
 SR = 8000
 NFFT = 256       # 32 ms frames
@@ -60,8 +62,15 @@ FB = mel_filterbank()
 
 
 def mfcc_feats(clip_id, data_dir):
-    """91 numbers per clip: MFCC mean, std, delta-std and the mean of 5 time segments."""
     sr, x = load_audio(clip_id, data_dir)
+    return mfcc_from_signal(x, sr)
+
+
+def mfcc_from_signal(x, sr=SR):
+    """91 numbers per clip: MFCC mean, std, delta-std and the mean of 5 time segments."""
+    if sr != SR:                                  # e.g. 48 kHz microphone audio
+        k = gcd(SR, sr)
+        x = resample_poly(x, SR // k, sr // k)
     x = x - x.mean()                              # remove DC offset
     x = x / (np.abs(x).max() + 1e-9)              # same loudness for every clip
     x = np.append(x[0], x[1:] - 0.97 * x[:-1])    # pre-emphasis
