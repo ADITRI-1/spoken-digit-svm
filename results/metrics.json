@@ -1,0 +1,29 @@
+{
+  "validation": {
+    "stratified_kfold": 0.902,
+    "leave_one_speaker_out": 0.508,
+    "unseen_val_speaker": 0.73
+  },
+  "ablation": {
+    "provided features": {
+      "loso": 0.532,
+      "worst_speaker": 0.448,
+      "val": 0.744
+    },
+    "provided + speaker norm": {
+      "loso": 0.622,
+      "worst_speaker": 0.596,
+      "val": 0.874
+    },
+    "own MFCC (VAD, level norm)": {
+      "loso": 0.62,
+      "worst_speaker": 0.53,
+      "val": 0.884
+    },
+    "own MFCC + speaker norm": {
+      "loso": 0.754,
+      "worst_speaker": 0.702,
+      "val": 0.916
+    }
+  }
+}
